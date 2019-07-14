@@ -1,6 +1,9 @@
 use wasm_bindgen::prelude::*;
 
+mod game;
 mod utils;
+
+use game::*;
 
 // Import the `window.alert` function from the Web.
 #[wasm_bindgen]
