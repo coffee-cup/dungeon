@@ -13,9 +13,11 @@
     "watch": "tsc --noEmit --watch -p ."
   },
   "dependencies": {
-    "lodash": "^4.17.14"
+    "lodash": "^4.17.14",
+    "webfontloader": "^1.6.28"
   },
   "devDependencies": {
+    "@types/webfontloader": "^1.6.29",
     "@types/webpack-env": "^1.14.0",
     "@wasm-tool/wasm-pack-plugin": "^0.4.2",
     "awesome-typescript-loader": "^5.2.1",

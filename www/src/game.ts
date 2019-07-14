@@ -2,6 +2,7 @@ import { Game, Vector } from "../../crate/pkg";
 import { renderMap } from "./draw";
 import { Context } from "./types";
 import { keys } from "./utils";
+import * as WebFont from "webfontloader";
 
 const MAX_MAP_WIDTH = 2000;
 const MAP_WIDTH = 40;
@@ -15,6 +16,15 @@ const tileSize = Math.floor(
     ? documentWidth / MAP_WIDTH
     : documentHeight / MAP_HEIGHT,
 );
+
+const loadFont = (cb: () => any) => {
+  WebFont.load({
+    google: {
+      families: ["Cutive Mono"],
+    },
+    active: cb,
+  });
+};
 
 export const start = async (mod: typeof import("../../crate/pkg")) => {
   const setupCanvas = (canvas: HTMLCanvasElement) => {
@@ -45,7 +55,7 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     mod,
   };
 
-  renderMap(ctx);
+  loadFont(() => renderMap(ctx));
 
   document.addEventListener("keydown", e => {
     const keysToDir = {
