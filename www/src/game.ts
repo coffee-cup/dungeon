@@ -1,5 +1,6 @@
-import { Vector } from "../../crate/pkg";
+import { Vector, Game } from "../../crate/pkg";
 import { colours, chars } from "./styles";
+import { keys } from "./utils";
 
 const MAX_MAP_WIDTH = 5000;
 const MAP_WIDTH = 30;
@@ -70,12 +71,14 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     );
   };
 
-  const renderMap = (
+  const renderMap = async (
     canvas: HTMLCanvasElement,
     context: CanvasRenderingContext2D,
-    size: Vector,
-    map: number[],
+    game: Game,
   ) => {
+    const size = game.size;
+    const map = await game.get_map();
+
     context.clearRect(0, 0, canvas.width, canvas.height);
     const numRows = size.y;
     const numCols = size.x;
@@ -114,8 +117,6 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     canvas.height = MAP_HEIGHT * tileSize;
   };
 
-  const setupContext = (context: CanvasRenderingContext2D) => {};
-
   const game = mod.Game.new(MAP_WIDTH, MAP_HEIGHT);
 
   const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
@@ -127,14 +128,33 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
   setupCanvas(canvas);
   const context = canvas.getContext("2d");
 
-  const map = await game.get_map();
-
   if (context == null) {
     alert("2d context does not exist!");
     return;
   }
 
-  setupContext(context);
+  renderMap(canvas, context, game);
 
-  renderMap(canvas, context, game.size, map);
+  document.addEventListener("keydown", e => {
+    const keysToDir = {
+      [keys.up]: mod.Direction.N,
+      [keys.down]: mod.Direction.S,
+      [keys.right]: mod.Direction.E,
+      [keys.left]: mod.Direction.W,
+      [keys.k]: mod.Direction.N,
+      [keys.j]: mod.Direction.S,
+      [keys.l]: mod.Direction.E,
+      [keys.h]: mod.Direction.W,
+      [keys.b]: mod.Direction.SW,
+      [keys.n]: mod.Direction.SE,
+      [keys.y]: mod.Direction.NW,
+      [keys.u]: mod.Direction.NE,
+    };
+
+    const dir = keysToDir[e.keyCode];
+    if (dir != null) {
+      game.move_player(dir);
+      renderMap(canvas, context, game);
+    }
+  });
 };

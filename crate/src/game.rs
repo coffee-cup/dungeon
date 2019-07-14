@@ -13,6 +13,20 @@ pub enum EntityType {
 }
 
 #[wasm_bindgen]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize_repr)]
+#[repr(u8)]
+pub enum Direction {
+    N = 0,
+    NE = 1,
+    E = 2,
+    SE = 3,
+    S = 4,
+    SW = 5,
+    W = 6,
+    NW = 7,
+}
+
+#[wasm_bindgen]
 #[derive(Debug, PartialEq, Clone, Copy, Serialize)]
 pub struct Vector {
     pub x: i32,
@@ -37,10 +51,6 @@ pub struct Game {
     pub size: Vector,
 }
 
-fn posToIndex(size: Vector, row: i32, col: i32) -> usize {
-    (size.x * row + col) as usize
-}
-
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen]
@@ -58,9 +68,75 @@ impl Game {
     pub fn get_map(&self) -> JsValue {
         let mut map = self.map.clone();
 
-        map[posToIndex(self.size, self.player.y, self.player.x)] = EntityType::Player;
+        map[self.posToIndex(self.player)] = EntityType::Player;
 
         JsValue::from_serde(&map).unwrap()
+    }
+
+    fn posToIndex(&self, pos: Vector) -> usize {
+        (self.size.x * pos.y + pos.x) as usize
+    }
+
+    fn is_valid_pos(&self, pos: Vector) -> bool {
+        let index = self.posToIndex(pos);
+
+        if index < 0 || index >= self.map.len() {
+            return false;
+        }
+
+        match self.map[index] {
+            EntityType::Wall => false,
+            _ => true,
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn move_player(&mut self, dir: Direction) {
+        let player = self.player;
+
+        let new_pos = match dir {
+            Direction::N => Vector {
+                y: player.y - 1,
+                ..player
+            },
+            Direction::E => Vector {
+                x: player.x + 1,
+                ..player
+            },
+            Direction::S => Vector {
+                y: player.y + 1,
+                ..player
+            },
+            Direction::W => Vector {
+                x: player.x - 1,
+                ..player
+            },
+            Direction::NE => Vector {
+                x: player.x + 1,
+                y: player.y - 1,
+                ..player
+            },
+            Direction::SE => Vector {
+                x: player.x + 1,
+                y: player.y + 1,
+                ..player
+            },
+            Direction::NW => Vector {
+                x: player.x - 1,
+                y: player.y - 1,
+                ..player
+            },
+            Direction::SW => Vector {
+                x: player.x - 1,
+                y: player.y + 1,
+                ..player
+            },
+            _ => Vector { ..player },
+        };
+
+        if self.is_valid_pos(new_pos) {
+            self.player = new_pos;
+        }
     }
 }
 
