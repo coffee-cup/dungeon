@@ -1,18 +1,48 @@
-export const colours = {
-  background: {
-    wall: "#724cf9",
-    floor: "#000000",
-    player: "#000000",
-  },
-  foreground: {
-    wall: "#000000",
-    floor: "rgba(255, 255, 255, 0.3)",
-    player: "#f42272",
-  },
+export type Colour = string;
+
+export interface TextOptions {
+  text: string;
+  textColour: Colour;
+  fontScale: number;
+}
+
+export interface TileOptions {
+  bgColour: Colour;
+}
+
+export const defaultTextOptions: TextOptions = {
+  text: "",
+  textColour: "red",
+  fontScale: 0.6,
 };
 
-export const chars = {
-  player: "@",
-  wall: "#",
-  floor: ".",
+export const defaultTileOptions: TileOptions = {
+  bgColour: "red",
 };
+
+export type StyleOptions = TextOptions & TileOptions;
+
+const createStyle = (style: Partial<StyleOptions>): StyleOptions => ({
+  ...defaultTextOptions,
+  ...defaultTileOptions,
+  ...style,
+});
+
+export const wallStyle = createStyle({
+  text: "#",
+  textColour: "black",
+  bgColour: "#724cf9",
+});
+
+export const floorStyle = createStyle({
+  text: ".",
+  textColour: "rgba(255, 255, 255, 0.3)",
+  bgColour: "black",
+});
+
+export const playerStyle = createStyle({
+  text: "@",
+  textColour: "#f7f6c5",
+  bgColour: floorStyle.bgColour,
+  fontScale: 0.9,
+});
