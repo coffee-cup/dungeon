@@ -1,5 +1,7 @@
 export type Colour = string;
 
+export const font = "Cutive Mono";
+
 export interface TextOptions {
   text: string;
   textColour: Colour;
@@ -13,7 +15,7 @@ export interface TileOptions {
 export const defaultTextOptions: TextOptions = {
   text: "",
   textColour: "red",
-  fontScale: 0.6,
+  fontScale: 0.7,
 };
 
 export const defaultTileOptions: TileOptions = {
@@ -42,7 +44,7 @@ export const floorStyle = createStyle({
 
 export const playerStyle = createStyle({
   text: "@",
-  textColour: "#f7f6c5",
+  textColour: "#fcf943",
   bgColour: floorStyle.bgColour,
   fontScale: 0.9,
 });

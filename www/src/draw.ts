@@ -1,5 +1,11 @@
 import { Vector } from "../../crate/pkg";
-import { floorStyle, playerStyle, StyleOptions, wallStyle } from "./styles";
+import {
+  floorStyle,
+  font,
+  playerStyle,
+  StyleOptions,
+  wallStyle,
+} from "./styles";
 import { Context } from "./types";
 import { posToIndex, xPos, yPos } from "./utils";
 
@@ -10,7 +16,7 @@ const drawTileText = (
 ) => {
   const { ctx2d, tileSize } = ctx;
 
-  ctx2d.font = `${tileSize * fontScale}px Consolas`;
+  ctx2d.font = `${Math.floor(tileSize * fontScale)}px ${font}`;
   ctx2d.fillStyle = textColour;
   ctx2d.textAlign = "center";
   ctx2d.textBaseline = "middle";
