@@ -6,7 +6,7 @@ export const colours = {
   },
   foreground: {
     wall: "#000000",
-    floor: "snow",
+    floor: "rgba(255, 255, 255, 0.3)",
     player: "#f42272",
   },
 };

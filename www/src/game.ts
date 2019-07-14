@@ -2,9 +2,9 @@ import { Vector, Game } from "../../crate/pkg";
 import { colours, chars } from "./styles";
 import { keys } from "./utils";
 
-const MAX_MAP_WIDTH = 5000;
-const MAP_WIDTH = 30;
-const MAP_HEIGHT = 20;
+const MAX_MAP_WIDTH = 2000;
+const MAP_WIDTH = 40;
+const MAP_HEIGHT = 30;
 
 const documentWidth = Math.min(document.body.clientWidth, MAX_MAP_WIDTH);
 const documentHeight = Math.min(document.body.clientHeight);
