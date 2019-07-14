@@ -28,8 +28,10 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     row: number,
     col: number,
     text: string,
-    colour: string = "white",
+    colour: string,
+    fontScale: number,
   ) => {
+    context.font = `${tileSize * fontScale}px Consolas`;
     context.fillStyle = colour;
     context.textAlign = "center";
     context.textBaseline = "middle";
@@ -54,10 +56,18 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
       backgroundColour: string;
       textColour: string;
       char: string;
+      fontScale?: number;
     },
   ) => {
     drawTileSquare(context, row, col, options.backgroundColour);
-    drawTileText(context, row, col, options.char, options.textColour);
+    drawTileText(
+      context,
+      row,
+      col,
+      options.char,
+      options.textColour,
+      options.fontScale || 0.6,
+    );
   };
 
   const renderMap = (
@@ -87,6 +97,13 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
             textColour: colours.foreground.floor,
             char: chars.floor,
           });
+        } else if (tile === EntityType.Player) {
+          fillTile(context, row, col, {
+            backgroundColour: colours.background.player,
+            textColour: colours.foreground.player,
+            char: chars.player,
+            fontScale: 0.8,
+          });
         }
       }
     }
@@ -97,9 +114,7 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     canvas.height = MAP_HEIGHT * tileSize;
   };
 
-  const setupContext = (context: CanvasRenderingContext2D) => {
-    context.font = `${tileSize * 0.6}px Consolas`;
-  };
+  const setupContext = (context: CanvasRenderingContext2D) => {};
 
   const game = mod.Game.new(MAP_WIDTH, MAP_HEIGHT);
 

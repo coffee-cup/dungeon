@@ -33,24 +33,32 @@ pub type Map = Vec<EntityType>;
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct Game {
     map: Map,
+    player: Vector,
     pub size: Vector,
+}
+
+fn posToIndex(size: Vector, row: i32, col: i32) -> usize {
+    (size.x * row + col) as usize
 }
 
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen]
-    pub fn new(width: u32, height: u32) -> Game {
-        let map = generate_map(Vector::new(width as i32, height as i32));
+    pub fn new(width: i32, height: i32) -> Game {
+        let map = generate_map(Vector::new(width, height));
 
         Game {
             map: map,
-            size: Vector::new(width as i32, height as i32),
+            player: Vector::new(width / 2, height / 2),
+            size: Vector::new(width, height),
         }
     }
 
     #[wasm_bindgen]
     pub fn get_map(&self) -> JsValue {
-        let map = self.map.clone();
+        let mut map = self.map.clone();
+
+        map[posToIndex(self.size, self.player.y, self.player.x)] = EntityType::Player;
 
         JsValue::from_serde(&map).unwrap()
     }
