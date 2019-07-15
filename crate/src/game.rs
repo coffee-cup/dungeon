@@ -3,6 +3,9 @@ use serde_derive::*;
 use serde_repr::*;
 use wasm_bindgen::prelude::*;
 
+use crate::map::*;
+use crate::vector::*;
+
 #[wasm_bindgen]
 #[derive(Debug, PartialEq, Clone, Copy, Serialize_repr)]
 #[repr(u8)]
@@ -27,23 +30,6 @@ pub enum Direction {
 }
 
 #[wasm_bindgen]
-#[derive(Debug, PartialEq, Clone, Copy, Serialize)]
-pub struct Vector {
-    pub x: i32,
-    pub y: i32,
-}
-
-#[wasm_bindgen]
-impl Vector {
-    #[wasm_bindgen(constructor)]
-    pub fn new(x: i32, y: i32) -> Vector {
-        Vector { x: x, y: y }
-    }
-}
-
-pub type Map = Vec<EntityType>;
-
-#[wasm_bindgen]
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct Game {
     map: Map,
@@ -55,10 +41,8 @@ pub struct Game {
 impl Game {
     #[wasm_bindgen]
     pub fn new(width: i32, height: i32) -> Game {
-        let map = generate_map(Vector::new(width, height));
-
         Game {
-            map: map,
+            map: Map::new(Vector::new(width, height)),
             player: Vector::new(width / 2, height / 2),
             size: Vector::new(width, height),
         }
@@ -66,28 +50,27 @@ impl Game {
 
     #[wasm_bindgen]
     pub fn get_map(&self) -> JsValue {
-        let mut map = self.map.clone();
+        let mut map: Vec<EntityType> = Vec::with_capacity(self.map.tiles().len());
 
-        map[self.posToIndex(self.player)] = EntityType::Player;
+        for tile in self.map.tiles() {
+            if tile.blocked {
+                map.push(EntityType::Wall);
+            } else {
+                map.push(EntityType::Floor);
+            }
+        }
+
+        map[self.map.pos_to_index(self.player)] = EntityType::Player;
 
         JsValue::from_serde(&map).unwrap()
     }
 
-    fn posToIndex(&self, pos: Vector) -> usize {
-        (self.size.x * pos.y + pos.x) as usize
+    fn slope(&self, pos1: Vector, pos2: Vector) -> f64 {
+        ((pos1.x as f64) - (pos2.x as f64)) / ((pos1.y as f64) - (pos2.y as f64))
     }
 
-    fn is_valid_pos(&self, pos: Vector) -> bool {
-        let index = self.posToIndex(pos);
-
-        if index < 0 || index >= self.map.len() {
-            return false;
-        }
-
-        match self.map[index] {
-            EntityType::Wall => false,
-            _ => true,
-        }
+    fn compute_visible_tiles(&self) {
+        let view_radius = 4;
     }
 
     #[wasm_bindgen]
@@ -134,27 +117,8 @@ impl Game {
             _ => Vector { ..player },
         };
 
-        if self.is_valid_pos(new_pos) {
+        if !self.map.is_blocked(new_pos) {
             self.player = new_pos;
         }
     }
-}
-
-fn generate_map(size: Vector) -> Map {
-    let width = size.x as usize;
-    let height = size.y as usize;
-
-    let mut map = Vec::with_capacity(width * height);
-
-    for y in 0..height {
-        for x in 0..width {
-            if x == 0 || x == width - 1 || y == 0 || y == height - 1 {
-                map.push(EntityType::Wall)
-            } else {
-                map.push(EntityType::Floor);
-            };
-        }
-    }
-
-    map
 }

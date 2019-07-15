@@ -1,7 +1,9 @@
 use wasm_bindgen::prelude::*;
 
 mod game;
+mod map;
 mod utils;
+mod vector;
 
 use game::*;
 

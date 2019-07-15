@@ -5,8 +5,8 @@ import { keys } from "./utils";
 import * as WebFont from "webfontloader";
 
 const MAX_MAP_WIDTH = 2000;
-const MAP_WIDTH = 40;
-const MAP_HEIGHT = 30;
+const MAP_WIDTH = 30;
+const MAP_HEIGHT = 20;
 
 const documentWidth = Math.min(document.body.clientWidth, MAX_MAP_WIDTH);
 const documentHeight = Math.min(document.body.clientHeight);
