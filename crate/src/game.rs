@@ -11,8 +11,9 @@ use crate::vector::*;
 #[repr(u8)]
 pub enum EntityType {
     Player = 0,
-    Wall = 1,
-    Floor = 2,
+    Hidden = 1,
+    Wall = 2,
+    Floor = 3,
 }
 
 #[wasm_bindgen]
@@ -58,10 +59,14 @@ impl Game {
         let mut map: Vec<EntityType> = Vec::with_capacity(self.map.tiles().len());
 
         for tile in self.map.tiles() {
-            if tile.blocked {
-                map.push(EntityType::Wall);
+            if tile.visible {
+                if tile.blocked {
+                    map.push(EntityType::Wall);
+                } else {
+                    map.push(EntityType::Floor);
+                }
             } else {
-                map.push(EntityType::Floor);
+                map.push(EntityType::Hidden)
             }
         }
 
@@ -117,5 +122,8 @@ impl Game {
         if !self.map.is_blocked(new_pos) {
             self.player = new_pos;
         }
+
+        self.map.hide_all();
+        shadowcast(&mut self.map, self.player);
     }
 }

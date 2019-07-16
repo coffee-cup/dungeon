@@ -6,7 +6,10 @@ const webpack = require("webpack");
 
 const dist = path.resolve(__dirname, "dist");
 
+const isProduction = process.env.NODE_ENV === "production";
+
 module.exports = {
+  mode: isProduction ? "production" : "development",
   entry: {
     index: "./src/index.ts",
   },
