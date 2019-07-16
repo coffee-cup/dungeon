@@ -66,17 +66,36 @@ impl Map {
             }
         }
 
-        // tiles[130] = Tile::wall();
-        // tiles[131] = Tile::wall();
-        // tiles[132] = Tile::wall();
-        // tiles[133] = Tile::wall();
-        // tiles[134] = Tile::wall();
-        // tiles[135] = Tile::wall();
-
-        Map {
+        let mut map = Map {
             tiles: tiles,
             size: size,
+        };
+
+        let walls: Vec<Vector> = vec![
+            Vector::new(4, 2),
+            Vector::new(5, 2),
+            Vector::new(6, 2),
+            Vector::new(7, 2),
+            Vector::new(8, 2),
+            Vector::new(9, 2),
+            Vector::new(10, 2),
+            Vector::new(11, 2),
+            Vector::new(12, 2),
+            Vector::new(13, 2),
+            Vector::new(4, 13),
+            Vector::new(4, 14),
+            Vector::new(4, 15),
+            Vector::new(5, 15),
+            Vector::new(5, 14),
+            Vector::new(6, 15),
+        ];
+
+        for v in walls.iter() {
+            let index = map.pos_to_index(*v);
+            map.tiles[index] = Tile::wall();
         }
+
+        map
     }
 
     pub fn hide_all(&mut self) {
@@ -115,10 +134,12 @@ impl ShadowCast for Map {
     }
 
     fn reveal(&mut self, pos: Vector) {
-        let index = self.pos_to_index(pos);
-        if (index >= 0 && index < self.tiles.len()) {
-            self.tiles[index].visible = true;
+        if (pos.x < 0 || pos.x >= self.size.x || pos.y < 0 || pos.y >= self.size.y) {
+            return;
         }
+
+        let index = self.pos_to_index(pos);
+        self.tiles[index].visible = true;
     }
 }
 
@@ -193,6 +214,8 @@ fn blocks_light(sc: &ShadowCast, pos: Vector, octant: usize, origin: Vector) -> 
 }
 
 fn set_visible(sc: &mut ShadowCast, pos: Vector, octant: usize, origin: Vector) {
+    let new_pos = transform_pos(octant, pos, origin);
+    // console_log!("setting visible {},{}", new_pos.x, new_pos.y);
     sc.reveal(transform_pos(octant, pos, origin));
 }
 
@@ -367,7 +390,17 @@ pub fn shadowcast(sc: &mut ShadowCast, origin: Vector) {
 
     let range_limit = -1;
 
-    for i in 1..2 {
+    // scan(
+    //     sc,
+    //     origin,
+    //     range_limit,
+    //     1,
+    //     Slope::new(1, 1),
+    //     Slope::new(0, 1),
+    //     0,
+    // );
+
+    for i in 0..8 {
         scan(
             sc,
             origin,
