@@ -14,4 +14,10 @@ impl Vector {
     pub fn new(x: i32, y: i32) -> Vector {
         Vector { x: x, y: y }
     }
+
+    pub fn distance(&self, other: &Vector) -> i32 {
+        let xx = other.x - self.x;
+        let yy = other.y - self.y;
+        (xx * xx) + (yy * yy)
+    }
 }

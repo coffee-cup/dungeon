@@ -41,9 +41,14 @@ pub struct Game {
 impl Game {
     #[wasm_bindgen]
     pub fn new(width: i32, height: i32) -> Game {
+        let mut map = Map::new(Vector::new(width, height));
+        let player = Vector::new(width / 2, height / 2);
+
+        shadowcast(&mut map, player);
+
         Game {
-            map: Map::new(Vector::new(width, height)),
-            player: Vector::new(width / 2, height / 2),
+            map: map,
+            player: player,
             size: Vector::new(width, height),
         }
     }
@@ -63,14 +68,6 @@ impl Game {
         map[self.map.pos_to_index(self.player)] = EntityType::Player;
 
         JsValue::from_serde(&map).unwrap()
-    }
-
-    fn slope(&self, pos1: Vector, pos2: Vector) -> f64 {
-        ((pos1.x as f64) - (pos2.x as f64)) / ((pos1.y as f64) - (pos2.y as f64))
-    }
-
-    fn compute_visible_tiles(&self) {
-        let view_radius = 4;
     }
 
     #[wasm_bindgen]
