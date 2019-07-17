@@ -325,60 +325,58 @@ fn scan(
                 // if we found a transition from clear to opaque or
                 // vice versa, adjust the otp and bottom vectors
                 // but, don't bother adjusting them if this is the last column
-                if x != range_limit {
-                    if is_opaque {
-                        if was_opaque == 0 {
-                            // top center
-                            let mut nx = x * 2;
-                            let ny = y * 2 + 1;
+                if is_opaque {
+                    if was_opaque == 0 {
+                        // top center
+                        let mut nx = x * 2;
+                        let ny = y * 2 + 1;
 
-                            // comment out check for full symmetry
-                            if blocks_light(sc, Vector::new(x, y + 1), octant, origin) {
-                                nx -= 1;
-                            }
-
-                            if top > Slope::new(ny, nx) {
-                                if y == bottom_y {
-                                    bottom = Slope::new(ny, nx);
-                                } else {
-                                    scan(
-                                        sc,
-                                        origin,
-                                        range_limit,
-                                        x + 1,
-                                        top,
-                                        Slope::new(ny, nx),
-                                        octant,
-                                    );
-                                }
-                            } else {
-                                if y == bottom_y {
-                                    return;
-                                }
-                            }
-
-                            was_opaque = 1;
+                        // comment out check for full symmetry
+                        if blocks_light(sc, Vector::new(x, y + 1), octant, origin) {
+                            nx -= 1;
                         }
-                    } else {
-                        // found transition from opaque to clear, adjust the top vector downwards
-                        if was_opaque > 0 {
-                            // bottom of the opaque tile
-                            let mut nx = x * 2;
-                            let ny = y * 2 + 1;
 
-                            if blocks_light(sc, Vector::new(x + 1, y + 1), octant, origin) {
-                                nx += 1
+                        if top > Slope::new(ny, nx) {
+                            if y == bottom_y {
+                                bottom = Slope::new(ny, nx);
+                            } else {
+                                scan(
+                                    sc,
+                                    origin,
+                                    range_limit,
+                                    x + 1,
+                                    top,
+                                    Slope::new(ny, nx),
+                                    octant,
+                                );
                             }
-
-                            if bottom >= Slope::new(ny, nx) {
+                        } else {
+                            if y == bottom_y {
                                 return;
-                            } else {
-                                top = Slope::new(ny, nx);
                             }
                         }
 
-                        was_opaque = 0;
+                        was_opaque = 1;
                     }
+                } else {
+                    // found transition from opaque to clear, adjust the top vector downwards
+                    if was_opaque > 0 {
+                        // bottom of the opaque tile
+                        let mut nx = x * 2;
+                        let ny = y * 2 + 1;
+
+                        if blocks_light(sc, Vector::new(x + 1, y + 1), octant, origin) {
+                            nx += 1
+                        }
+
+                        if bottom >= Slope::new(ny, nx) {
+                            return;
+                        } else {
+                            top = Slope::new(ny, nx);
+                        }
+                    }
+
+                    was_opaque = 0;
                 }
             }
 
@@ -396,7 +394,7 @@ fn scan(
 pub fn shadowcast(sc: &mut ShadowCast, origin: Vector) {
     sc.reveal(origin);
 
-    let range_limit = 6;
+    let range_limit = -1;
 
     // scan(
     //     sc,

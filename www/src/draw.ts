@@ -72,11 +72,31 @@ export const renderMap = async (ctx: Context) => {
       const style = entityToStyle[tile];
 
       if (!style) {
-        console.log("Unknown tile", tile);
+        if (tile !== EntityType.Hidden) {
+          console.log("Unknown tile", tile === EntityType.Hidden);
+        }
         continue;
       }
 
-      fillTile(ctx, pos, style);
+      if (tile === EntityType.Wall) {
+        const style = {
+          text: `${col},${row}`,
+          textColour: "black",
+          bgColour: wallStyle.bgColour,
+          fontScale: 0.2,
+        };
+        fillTile(ctx, pos, style);
+      } else if (tile === EntityType.Floor) {
+        const style = {
+          text: `${col},${row}`,
+          textColour: "white",
+          bgColour: floorStyle.bgColour,
+          fontScale: 0.2,
+        };
+        fillTile(ctx, pos, style);
+      } else {
+        fillTile(ctx, pos, style);
+      }
     }
   }
 };
