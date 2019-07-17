@@ -15,9 +15,13 @@ impl Vector {
         Vector { x: x, y: y }
     }
 
-    pub fn distance(&self, other: &Vector) -> i32 {
+    pub fn square_distance(&self, other: &Vector) -> i32 {
         let xx = other.x - self.x;
         let yy = other.y - self.y;
         (xx * xx) + (yy * yy)
+    }
+
+    pub fn in_range(&self, other: &Vector, range_limit: i32) -> bool {
+        self.square_distance(other) < range_limit * range_limit
     }
 }

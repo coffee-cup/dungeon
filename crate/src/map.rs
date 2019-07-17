@@ -82,6 +82,16 @@ impl Map {
             Vector::new(11, 2),
             Vector::new(12, 2),
             Vector::new(13, 2),
+            Vector::new(4, 5),
+            Vector::new(5, 5),
+            Vector::new(6, 5),
+            Vector::new(7, 5),
+            Vector::new(8, 5),
+            Vector::new(9, 5),
+            Vector::new(10, 5),
+            Vector::new(11, 5),
+            Vector::new(12, 5),
+            Vector::new(13, 5),
             Vector::new(4, 13),
             Vector::new(4, 14),
             Vector::new(4, 15),
@@ -109,12 +119,11 @@ impl Map {
     }
 
     pub fn is_blocked(&self, pos: Vector) -> bool {
-        let index = self.pos_to_index(pos);
-
-        if index < 0 || index >= self.tiles.len() {
+        if (pos.x < 0 || pos.x >= self.size.x || pos.y < 0 || pos.y >= self.size.y) {
             return true;
         }
 
+        let index = self.pos_to_index(pos);
         self.tiles[index].blocked
     }
 
@@ -214,8 +223,6 @@ fn blocks_light(sc: &ShadowCast, pos: Vector, octant: usize, origin: Vector) -> 
 }
 
 fn set_visible(sc: &mut ShadowCast, pos: Vector, octant: usize, origin: Vector) {
-    let new_pos = transform_pos(octant, pos, origin);
-    // console_log!("setting visible {},{}", new_pos.x, new_pos.y);
     sc.reveal(transform_pos(octant, pos, origin));
 }
 
@@ -294,7 +301,7 @@ fn scan(
         let mut y = top_y;
         while y >= bottom_y {
             let curr = Vector::new(x, y);
-            if range_limit < 0 || origin.distance(&curr) <= range_limit * 2 {
+            if range_limit < 0 || curr.in_range(&Vector::new(0, 0), range_limit) {
                 let is_opaque = blocks_light(sc, curr, octant, origin);
 
                 // every tile where topY > y > bottomY is guaranteed
@@ -325,7 +332,8 @@ fn scan(
                             let mut nx = x * 2;
                             let ny = y * 2 + 1;
 
-                            if blocks_light(sc, Vector::new(x, y), octant, origin) {
+                            // comment out check for full symmetry
+                            if blocks_light(sc, Vector::new(x, y + 1), octant, origin) {
                                 nx -= 1;
                             }
 
@@ -388,7 +396,7 @@ fn scan(
 pub fn shadowcast(sc: &mut ShadowCast, origin: Vector) {
     sc.reveal(origin);
 
-    let range_limit = -1;
+    let range_limit = 6;
 
     // scan(
     //     sc,
