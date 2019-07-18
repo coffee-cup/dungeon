@@ -1,4 +1,5 @@
 use serde_derive::*;
+use std::fmt;
 use std::ops;
 use wasm_bindgen::prelude::*;
 
@@ -32,5 +33,11 @@ impl ops::Add<Vector> for Vector {
 
     fn add(self, rhs: Vector) -> Vector {
         Vector::new(self.x + rhs.x, self.y + rhs.y)
+    }
+}
+
+impl fmt::Display for Vector {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{},{}", self.x, self.y)
     }
 }
