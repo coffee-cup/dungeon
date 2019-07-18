@@ -3,6 +3,7 @@ use serde_derive::*;
 use serde_repr::*;
 use wasm_bindgen::prelude::*;
 
+use crate::fov;
 use crate::map::*;
 use crate::vector::*;
 
@@ -43,9 +44,12 @@ impl Game {
     #[wasm_bindgen]
     pub fn new(width: i32, height: i32) -> Game {
         let mut map = Map::new(Vector::new(width, height));
-        let player = Vector::new(width / 2, height / 2);
+        // let player = Vector::new(width / 2, height / 2);
+        let player = Vector::new(4, 4);
 
-        shadowcast(&mut map, player);
+        fov::refresh_visiblity(&mut map, -1, player);
+
+        // shadowcast(&mut map, player);
 
         Game {
             map: map,
@@ -123,7 +127,7 @@ impl Game {
             self.player = new_pos;
         }
 
-        self.map.hide_all();
-        shadowcast(&mut self.map, self.player);
+        self.map.set_all_visiblity(true);
+        // shadowcast(&mut self.map, self.player);
     }
 }

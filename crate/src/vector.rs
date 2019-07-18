@@ -1,4 +1,5 @@
 use serde_derive::*;
+use std::ops;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -23,5 +24,13 @@ impl Vector {
 
     pub fn in_range(&self, other: &Vector, range_limit: i32) -> bool {
         self.square_distance(other) < range_limit * range_limit
+    }
+}
+
+impl ops::Add<Vector> for Vector {
+    type Output = Vector;
+
+    fn add(self, rhs: Vector) -> Vector {
+        Vector::new(self.x + rhs.x, self.y + rhs.y)
     }
 }

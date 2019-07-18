@@ -3,6 +3,7 @@ use serde_derive::*;
 use std::cmp;
 use wasm_bindgen::prelude::*;
 
+use crate::fov::*;
 use crate::utils::*;
 use crate::vector::*;
 
@@ -108,9 +109,13 @@ impl Map {
         map
     }
 
-    pub fn hide_all(&mut self) {
+    pub fn in_bounds(&self, pos: Vector) -> bool {
+        !(pos.x < 0 || pos.x >= self.size.x || pos.y < 0 || pos.y >= self.size.y)
+    }
+
+    pub fn set_all_visiblity(&mut self, visible: bool) {
         for tile in self.tiles.iter_mut() {
-            tile.visible = false;
+            tile.visible = visible;
         }
     }
 
@@ -119,12 +124,12 @@ impl Map {
     }
 
     pub fn is_blocked(&self, pos: Vector) -> bool {
-        if (pos.x < 0 || pos.x >= self.size.x || pos.y < 0 || pos.y >= self.size.y) {
-            return true;
+        if self.in_bounds(pos) {
+            let index = self.pos_to_index(pos);
+            self.tiles[index].blocked
+        } else {
+            true
         }
-
-        let index = self.pos_to_index(pos);
-        self.tiles[index].blocked
     }
 
     pub fn tiles(&self) -> &Vec<Tile> {
@@ -132,289 +137,230 @@ impl Map {
     }
 }
 
-pub trait ShadowCast {
-    fn transparent(&self, pos: Vector) -> bool;
-    fn reveal(&mut self, pos: Vector);
-}
-
-impl ShadowCast for Map {
+impl Area for Map {
     fn transparent(&self, pos: Vector) -> bool {
         !self.is_blocked(pos)
     }
 
-    fn reveal(&mut self, pos: Vector) {
-        if (pos.x < 0 || pos.x >= self.size.x || pos.y < 0 || pos.y >= self.size.y) {
-            return;
-        }
-
-        let index = self.pos_to_index(pos);
-        self.tiles[index].visible = true;
+    fn in_bounds(&self, pos: Vector) -> bool {
+        self.in_bounds(pos)
     }
-}
 
-#[derive(Debug)]
-struct Transform {
-    xx: i8,
-    xy: i8,
-    yx: i8,
-    yy: i8,
-}
-
-impl Transform {
-    pub fn new(xx: i8, xy: i8, yx: i8, yy: i8) -> Transform {
-        Transform {
-            xx: xx,
-            xy: xy,
-            yx: yx,
-            yy: yy,
+    fn set_visibility(&mut self, pos: Vector, visibility: bool) {
+        if self.in_bounds(pos) {
+            let index = self.pos_to_index(pos);
+            self.tiles[index].visible = true;
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Slope {
-    pub x: i32,
-    pub y: i32,
-}
+// impl cmp::Ord for Slope {
+//     fn cmp(&self, other: &Self) -> cmp::Ordering {
+//         if self == other {
+//             cmp::Ordering::Equal
+//         } else if self.y * other.x > self.x * other.y {
+//             cmp::Ordering::Greater
+//         } else {
+//             cmp::Ordering::Less
+//         }
+//     }
+// }
 
-impl Slope {
-    pub fn new(y: i32, x: i32) -> Slope {
-        Slope { x: x, y: y }
-    }
-}
+// impl PartialOrd for Slope {
+//     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+//         Some(self.cmp(other))
 
-impl cmp::Ord for Slope {
-    fn cmp(&self, other: &Self) -> cmp::Ordering {
-        if self == other {
-            cmp::Ordering::Equal
-        } else if self.y * other.x > self.x * other.y {
-            cmp::Ordering::Greater
-        } else {
-            cmp::Ordering::Less
-        }
-    }
-}
+// }
 
-impl PartialOrd for Slope {
-    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
+// fn scan(
+//     sc: &mut ShadowCast,
+//     origin: Vector,
+//     range_limit: i32,
+//     x: i32,
+//     top: Slope,
+//     bottom: Slope,
+//     octant: usize,
+// ) {
+//     let mut x = x;
+//     let mut top = top;
+//     let mut bottom = bottom;
 
-fn transform_pos(octant: usize, pos: Vector, origin: Vector) -> Vector {
-    let nx = origin.x;
-    let ny = origin.y;
+//     while range_limit < 0 || x <= range_limit {
+//         let top_y = if top.x == 1 {
+//             x
+//         } else {
+//             // get the tile that the top vector enters from the left
+//             let mut top_y = ((x * 2 - 1) * top.y + top.x) / (top.x * 2);
 
-    match octant {
-        0 => Vector::new(nx + pos.x, ny - pos.y),
-        1 => Vector::new(nx + pos.y, ny - pos.x),
-        2 => Vector::new(nx - pos.y, ny - pos.x),
-        3 => Vector::new(nx - pos.x, ny - pos.y),
-        4 => Vector::new(nx - pos.x, ny + pos.y),
-        5 => Vector::new(nx - pos.y, ny + pos.x),
-        6 => Vector::new(nx + pos.y, ny + pos.x),
-        7 => Vector::new(nx + pos.x, ny + pos.y),
-        _ => panic!("not such octant!"),
-    }
-}
+//             // it is possible that the vector passes from the left
+//             // side of the tile up into the tile above before exiting
+//             // from the right side of this column.
+//             if blocks_light(sc, Vector::new(x, top_y), octant, origin) {
+//                 // the tile blocks light
+//                 // if light passes into the tile above depends on the
+//                 // shape of the wall tile as well as the angle of the
+//                 // vector. if the tiel does not have a beveled
+//                 // top-left corner, then it is blocked. the corner is
+//                 // beveled if the tiles above and to the left are not
+//                 // walls.
+//                 if top >= Slope::new(top_y * 2 + 1, x * 2)
+//                     && !blocks_light(sc, Vector::new(x, top_y + 1), octant, origin)
+//                 {
+//                     top_y += 1;
+//                 }
+//             } else {
+//                 // the tile doesn't block light
+//                 let mut ax = x * 2;
+//                 if blocks_light(sc, Vector::new(x + 1, top_y + 1), octant, origin) {
+//                     ax += 1;
+//                 }
 
-fn blocks_light(sc: &ShadowCast, pos: Vector, octant: usize, origin: Vector) -> bool {
-    !sc.transparent(transform_pos(octant, pos, origin))
-}
+//                 if top > Slope::new(top_y * 2 + 1, ax) {
+//                     top_y += 1;
+//                 }
+//             }
 
-fn set_visible(sc: &mut ShadowCast, pos: Vector, octant: usize, origin: Vector) {
-    sc.reveal(transform_pos(octant, pos, origin));
-}
+//             top_y
+//         };
 
-fn scan(
-    sc: &mut ShadowCast,
-    origin: Vector,
-    range_limit: i32,
-    x: i32,
-    top: Slope,
-    bottom: Slope,
-    octant: usize,
-) {
-    let mut x = x;
-    let mut top = top;
-    let mut bottom = bottom;
+//         // get the tile that the bottom vector enters from the left.
+//         // ensure that the bototm vector actually hits the wall shape.
+//         let bottom_y = if bottom.y == 0 {
+//             0
+//         } else {
+//             let mut bottom_y = ((x * 2 - 1) * bottom.y + bottom.x) / (bottom.x * 2);
 
-    while range_limit < 0 || x <= range_limit {
-        let top_y = if top.x == 1 {
-            x
-        } else {
-            // get the tile that the top vector enters from the left
-            let mut top_y = ((x * 2 - 1) * top.y + top.x) / (top.x * 2);
+//             if bottom >= Slope::new(bottom_y * 2 + 1, x * 2)
+//                 && blocks_light(sc, Vector::new(x, bottom_y), octant, origin)
+//                 && !blocks_light(sc, Vector::new(x, bottom_y + 1), octant, origin)
+//             {
+//                 bottom_y += 1;
+//             }
 
-            // it is possible that the vector passes from the left
-            // side of the tile up into the tile above before exiting
-            // from the right side of this column.
-            if blocks_light(sc, Vector::new(x, top_y), octant, origin) {
-                // the tile blocks light
-                // if light passes into the tile above depends on the
-                // shape of the wall tile as well as the angle of the
-                // vector. if the tiel does not have a beveled
-                // top-left corner, then it is blocked. the corner is
-                // beveled if the tiles above and to the left are not
-                // walls.
-                if top >= Slope::new(top_y * 2 + 1, x * 2)
-                    && !blocks_light(sc, Vector::new(x, top_y + 1), octant, origin)
-                {
-                    top_y += 1;
-                }
-            } else {
-                // the tile doesn't block light
-                let mut ax = x * 2;
-                if blocks_light(sc, Vector::new(x + 1, top_y + 1), octant, origin) {
-                    ax += 1;
-                }
+//             bottom_y
+//         };
 
-                if top > Slope::new(top_y * 2 + 1, ax) {
-                    top_y += 1;
-                }
-            }
+//         // go through the tiles in the column now that we known which
+//         // ones could possibly be visible
+//         let mut was_opaque = -1; // 0:false, 1:true, -1:n/a
 
-            top_y
-        };
+//         let mut y = top_y;
+//         while y >= bottom_y {
+//             let curr = Vector::new(x, y);
+//             if range_limit < 0 || curr.in_range(&Vector::new(0, 0), range_limit) {
+//                 let is_opaque = blocks_light(sc, curr, octant, origin);
 
-        // get the tile that the bottom vector enters from the left.
-        // ensure that the bototm vector actually hits the wall shape.
-        let bottom_y = if bottom.y == 0 {
-            0
-        } else {
-            let mut bottom_y = ((x * 2 - 1) * bottom.y + bottom.x) / (bottom.x * 2);
+//                 // every tile where topY > y > bottomY is guaranteed
+//                 // to be visible. the initialization of topY and
+//                 // bottomY guarantees that if the tile is opaque then it is visible.
+//                 //
+//                 // we need to do extra work if y == topY or y ==
+//                 // bottomY. if y == topY we need to make sure that the
+//                 // top vector is above the bottom-right corner of the
+//                 // inner square. if y == bottomY we need to make sure
+//                 // that the bottom vector is below the top-left corner
+//                 // of the inner square
+//                 let is_visible = is_opaque
+//                     || ((y != top_y || top > Slope::new(y * 4 - 1, x * 4 + 1))
+//                         && (y != bottom_y || bottom < Slope::new(y * 4 + 1, x * 4 - 1)));
 
-            if bottom >= Slope::new(bottom_y * 2 + 1, x * 2)
-                && blocks_light(sc, Vector::new(x, bottom_y), octant, origin)
-                && !blocks_light(sc, Vector::new(x, bottom_y + 1), octant, origin)
-            {
-                bottom_y += 1;
-            }
+//                 if is_visible {
+//                     set_visible(sc, curr, octant, origin)
+//                 };
 
-            bottom_y
-        };
+//                 // if we found a transition from clear to opaque or
+//                 // vice versa, adjust the otp and bottom vectors
+//                 // but, don't bother adjusting them if this is the last column
+//                 if is_opaque {
+//                     if was_opaque == 0 {
+//                         // top center
+//                         let mut nx = x * 2;
+//                         let ny = y * 2 + 1;
 
-        // go through the tiles in the column now that we known which
-        // ones could possibly be visible
-        let mut was_opaque = -1; // 0:false, 1:true, -1:n/a
+//                         // comment out check for full symmetry
+//                         if blocks_light(sc, Vector::new(x, y + 1), octant, origin) {
+//                             nx -= 1;
+//                         }
 
-        let mut y = top_y;
-        while y >= bottom_y {
-            let curr = Vector::new(x, y);
-            if range_limit < 0 || curr.in_range(&Vector::new(0, 0), range_limit) {
-                let is_opaque = blocks_light(sc, curr, octant, origin);
+//                         if top > Slope::new(ny, nx) {
+//                             if y == bottom_y {
+//                                 bottom = Slope::new(ny, nx);
+//                             } else {
+//                                 scan(
+//                                     sc,
+//                                     origin,
+//                                     range_limit,
+//                                     x + 1,
+//                                     top,
+//                                     Slope::new(ny, nx),
+//                                     octant,
+//                                 );
+//                             }
+//                         } else {
+//                             if y == bottom_y {
+//                                 return;
+//                             }
+//                         }
 
-                // every tile where topY > y > bottomY is guaranteed
-                // to be visible. the initialization of topY and
-                // bottomY guarantees that if the tile is opaque then it is visible.
-                //
-                // we need to do extra work if y == topY or y ==
-                // bottomY. if y == topY we need to make sure that the
-                // top vector is above the bottom-right corner of the
-                // inner square. if y == bottomY we need to make sure
-                // that the bottom vector is below the top-left corner
-                // of the inner square
-                let is_visible = is_opaque
-                    || ((y != top_y || top > Slope::new(y * 4 - 1, x * 4 + 1))
-                        && (y != bottom_y || bottom < Slope::new(y * 4 + 1, x * 4 - 1)));
+//                         was_opaque = 1;
+//                     }
+//                 } else {
+//                     // found transition from opaque to clear, adjust the top vector downwards
+//                     if was_opaque > 0 {
+//                         // bottom of the opaque tile
+//                         let mut nx = x * 2;
+//                         let ny = y * 2 + 1;
 
-                if is_visible {
-                    set_visible(sc, curr, octant, origin)
-                };
+//                         if blocks_light(sc, Vector::new(x + 1, y + 1), octant, origin) {
+//                             nx += 1
+//                         }
 
-                // if we found a transition from clear to opaque or
-                // vice versa, adjust the otp and bottom vectors
-                // but, don't bother adjusting them if this is the last column
-                if is_opaque {
-                    if was_opaque == 0 {
-                        // top center
-                        let mut nx = x * 2;
-                        let ny = y * 2 + 1;
+//                         if bottom >= Slope::new(ny, nx) {
+//                             return;
+//                         } else {
+//                             top = Slope::new(ny, nx);
+//                         }
+//                     }
 
-                        // comment out check for full symmetry
-                        if blocks_light(sc, Vector::new(x, y + 1), octant, origin) {
-                            nx -= 1;
-                        }
+//                     was_opaque = 0;
+//                 }
+//             }
 
-                        if top > Slope::new(ny, nx) {
-                            if y == bottom_y {
-                                bottom = Slope::new(ny, nx);
-                            } else {
-                                scan(
-                                    sc,
-                                    origin,
-                                    range_limit,
-                                    x + 1,
-                                    top,
-                                    Slope::new(ny, nx),
-                                    octant,
-                                );
-                            }
-                        } else {
-                            if y == bottom_y {
-                                return;
-                            }
-                        }
+//             y -= 1;
+//         }
 
-                        was_opaque = 1;
-                    }
-                } else {
-                    // found transition from opaque to clear, adjust the top vector downwards
-                    if was_opaque > 0 {
-                        // bottom of the opaque tile
-                        let mut nx = x * 2;
-                        let ny = y * 2 + 1;
+//         if was_opaque != 0 {
+//             break;
+//         }
 
-                        if blocks_light(sc, Vector::new(x + 1, y + 1), octant, origin) {
-                            nx += 1
-                        }
+//         x += 1;
+//     }
+// }
 
-                        if bottom >= Slope::new(ny, nx) {
-                            return;
-                        } else {
-                            top = Slope::new(ny, nx);
-                        }
-                    }
+// pub fn shadowcast(sc: &mut ShadowCast, origin: Vector) {
+//     sc.reveal(origin);
 
-                    was_opaque = 0;
-                }
-            }
+//     let range_limit = -1;
 
-            y -= 1;
-        }
+//     // scan(
+//     //     sc,
+//     //     origin,
+//     //     range_limit,
+//     //     1,
+//     //     Slope::new(1, 1),
+//     //     Slope::new(0, 1),
+//     //     0,
+//     // );
 
-        if was_opaque != 0 {
-            break;
-        }
-
-        x += 1;
-    }
-}
-
-pub fn shadowcast(sc: &mut ShadowCast, origin: Vector) {
-    sc.reveal(origin);
-
-    let range_limit = -1;
-
-    // scan(
-    //     sc,
-    //     origin,
-    //     range_limit,
-    //     1,
-    //     Slope::new(1, 1),
-    //     Slope::new(0, 1),
-    //     0,
-    // );
-
-    for i in 0..8 {
-        scan(
-            sc,
-            origin,
-            range_limit,
-            1,
-            Slope::new(1, 1),
-            Slope::new(0, 1),
-            i,
-        );
-    }
-}
+//     for i in 0..8 {
+//         scan(
+//             sc,
+//             origin,
+//             range_limit,
+//             1,
+//             Slope::new(1, 1),
+//             Slope::new(0, 1),
+//             i,
+//         );
+//     }
+// }
