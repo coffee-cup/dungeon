@@ -8,6 +8,20 @@ use crate::map::*;
 use crate::vector::*;
 
 #[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(s: &str);
+}
+
+macro_rules! console_log {
+    // Note that this is using the `log` function imported above during
+    // `bare_bones`
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+
+#[wasm_bindgen]
 #[derive(Debug, PartialEq, Clone, Copy, Serialize_repr)]
 #[repr(u8)]
 pub enum EntityType {
@@ -42,14 +56,16 @@ pub struct Game {
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen]
-    pub fn new(width: i32, height: i32) -> Game {
-        let mut map = Map::new(Vector::new(width, height));
-        // let player = Vector::new(width / 2, height / 2);
-        let player = Vector::new(4, 4);
+    pub fn new(width: i32, height: i32, map_str: &str) -> Game {
+        let mut map = Map::new(Vector::new(width, height), map_str);
 
+        console_log!("{}", map);
+
+        // let player = Vector::new(4, 4);
+        let player = Vector::new(1, 1);
+
+        map.set_all_visiblity(true);
         fov::refresh_visiblity(&mut map, -1, player);
-
-        // shadowcast(&mut map, player);
 
         Game {
             map: map,
@@ -128,6 +144,6 @@ impl Game {
         }
 
         self.map.set_all_visiblity(true);
-        // shadowcast(&mut self.map, self.player);
+        fov::refresh_visiblity(&mut self.map, -1, self.player);
     }
 }

@@ -5,8 +5,41 @@ import { keys } from "./utils";
 import * as WebFont from "webfontloader";
 
 const MAX_MAP_WIDTH = 2000;
-const MAP_WIDTH = 20;
-const MAP_HEIGHT = 20;
+
+const map = `
+######################################################
+#       ##############################################
+#            ###               ######    ##          #
+#       #### ###    ########## ####      ## ######## #
+#       #### ###### ########## #### #    ## ######## #
+#       #### ###### ###          ## #    ## ##   ### #
+#       ####    ### ###  #    #  ## ## #### ## # ### #
+## ######### ## ### ###  #    #  ## #    ##    # ### #
+#     ###### ## ### ###  #    #  ## #    ####### ### #
+#     ###### ## ### ###  #    #  ## #    ##       ## #
+############ ## ### ###          ## ### ###       ## #
+############ ##     ######### ##### #    ##       ## #
+#   #        ################ ##### #             ## #
+#     #############        ##       ################ #
+#   # #############  ####  ######################### #
+##### #########      #  #       ######          #### #
+#   # ######### ###        #### #####            ### #
+#     ######### ############### ####    #         ## #
+#   #           ######          ###                # #
+###### ### ### ####################       ##         #
+#   #   #   #   ##      ##    #####                ###
+#       #   #   ## #### ##    ######         #    ####
+#   #   #   #      #### ##    #######            #####
+#######################       ########          ######
+######################################################
+`.trim();
+
+const lines = map.split("\n");
+
+const MAP_WIDTH = lines[0].length;
+const MAP_HEIGHT = lines.length;
+
+console.log({ MAP_WIDTH, MAP_HEIGHT });
 
 const documentWidth = Math.min(document.body.clientWidth, MAX_MAP_WIDTH);
 const documentHeight = Math.min(document.body.clientHeight);
@@ -23,6 +56,7 @@ const loadFont = (cb: () => any) => {
       families: ["Cutive Mono"],
     },
     active: cb,
+    inactive: cb,
   });
 };
 
@@ -46,7 +80,7 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     return;
   }
 
-  const game = mod.Game.new(MAP_WIDTH, MAP_HEIGHT);
+  const game = mod.Game.new(MAP_WIDTH, MAP_HEIGHT, map.replace(/\n/g, ""));
 
   const ctx: Context = {
     game,
@@ -55,6 +89,7 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     mod,
   };
 
+  // renderMap(ctx);
   loadFont(() => renderMap(ctx));
 
   document.addEventListener("keydown", e => {

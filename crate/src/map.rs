@@ -1,6 +1,7 @@
 use serde::*;
 use serde_derive::*;
 use std::cmp;
+use std::fmt;
 use wasm_bindgen::prelude::*;
 
 use crate::fov::*;
@@ -51,7 +52,7 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(size: Vector) -> Map {
+    pub fn new(size: Vector, map_str: &str) -> Map {
         let width = size.x as usize;
         let height = size.y as usize;
 
@@ -72,39 +73,52 @@ impl Map {
             size: size,
         };
 
-        let walls: Vec<Vector> = vec![
-            Vector::new(4, 2),
-            Vector::new(5, 2),
-            Vector::new(6, 2),
-            Vector::new(7, 2),
-            Vector::new(8, 2),
-            Vector::new(9, 2),
-            Vector::new(10, 2),
-            Vector::new(11, 2),
-            Vector::new(12, 2),
-            Vector::new(13, 2),
-            Vector::new(4, 5),
-            Vector::new(5, 5),
-            Vector::new(6, 5),
-            Vector::new(7, 5),
-            Vector::new(8, 5),
-            Vector::new(9, 5),
-            Vector::new(10, 5),
-            Vector::new(11, 5),
-            Vector::new(12, 5),
-            Vector::new(13, 5),
-            Vector::new(4, 13),
-            Vector::new(4, 14),
-            Vector::new(4, 15),
-            Vector::new(5, 15),
-            Vector::new(5, 14),
-            Vector::new(6, 15),
-        ];
+        for y in 0..height {
+            for x in 0..width {
+                let index = map.pos_to_index(Vector::new(x as i32, y as i32));
+                let char = map_str.chars().nth(index).unwrap();
 
-        for v in walls.iter() {
-            let index = map.pos_to_index(*v);
-            map.tiles[index] = Tile::wall();
+                if char == '#' {
+                    map.tiles[index] = Tile::wall();
+                } else {
+                    map.tiles[index] = Tile::floor();
+                }
+            }
         }
+
+        // let walls: Vec<Vector> = vec![
+        //     Vector::new(4, 2),
+        //     Vector::new(5, 2),
+        //     Vector::new(6, 2),
+        //     Vector::new(7, 2),
+        //     Vector::new(8, 2),
+        //     Vector::new(9, 2),
+        //     Vector::new(10, 2),
+        //     Vector::new(11, 2),
+        //     Vector::new(12, 2),
+        //     Vector::new(13, 2),
+        //     Vector::new(4, 5),
+        //     Vector::new(5, 5),
+        //     Vector::new(6, 5),
+        //     Vector::new(7, 5),
+        //     Vector::new(8, 5),
+        //     Vector::new(9, 5),
+        //     Vector::new(10, 5),
+        //     Vector::new(11, 5),
+        //     Vector::new(12, 5),
+        //     Vector::new(13, 5),
+        //     Vector::new(4, 13),
+        //     Vector::new(4, 14),
+        //     Vector::new(4, 15),
+        //     Vector::new(5, 15),
+        //     Vector::new(5, 14),
+        //     Vector::new(6, 15),
+        // ];
+
+        // for v in walls.iter() {
+        //     let index = map.pos_to_index(*v);
+        //     map.tiles[index] = Tile::wall();
+        // }
 
         map
     }
@@ -160,5 +174,25 @@ impl Area for Map {
             let index = self.pos_to_index(pos);
             self.tiles[index].visible = visibility;
         }
+    }
+}
+
+impl fmt::Display for Map {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut map_str: String = "".to_owned();
+        console_log!("size {}", self.size);
+        for row in 0..self.size.y {
+            for col in 0..self.size.x {
+                let index = self.pos_to_index(Vector::new(col, row));
+
+                if self.in_bounds(Vector::new(col, row)) {
+                    let s = if self.tiles[index].blocked { "#" } else { " " };
+                    map_str.push_str(s)
+                }
+            }
+            map_str.push_str("\n");
+        }
+
+        write!(f, "{}", map_str)
     }
 }
