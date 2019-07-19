@@ -24,16 +24,6 @@ macro_rules! console_log {
 #[wasm_bindgen]
 #[derive(Debug, PartialEq, Clone, Copy, Serialize_repr)]
 #[repr(u8)]
-pub enum EntityType {
-    Player = 0,
-    Hidden = 1,
-    Wall = 2,
-    Floor = 3,
-}
-
-#[wasm_bindgen]
-#[derive(Debug, PartialEq, Clone, Copy, Serialize_repr)]
-#[repr(u8)]
 pub enum Direction {
     N = 0,
     NE = 1,
@@ -49,7 +39,7 @@ pub enum Direction {
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct Game {
     map: Map,
-    player: Vector,
+    pub player: Vector,
     pub size: Vector,
 }
 
@@ -62,7 +52,7 @@ impl Game {
         console_log!("{}", map);
 
         // let player = Vector::new(4, 4);
-        let player = Vector::new(1, 1);
+        let player = Vector::new(2, 6);
 
         map.set_all_visiblity(true);
         fov::refresh_visiblity(&mut map, -1, player);
@@ -76,23 +66,23 @@ impl Game {
 
     #[wasm_bindgen]
     pub fn get_map(&self) -> JsValue {
-        let mut map: Vec<EntityType> = Vec::with_capacity(self.map.tiles().len());
+        // let mut map: Vec<EntityType> = Vec::with_capacity(self.map.tiles().len());
 
-        for tile in self.map.tiles() {
-            if tile.visible {
-                if tile.blocked {
-                    map.push(EntityType::Wall);
-                } else {
-                    map.push(EntityType::Floor);
-                }
-            } else {
-                map.push(EntityType::Hidden)
-            }
-        }
+        // for tile in self.map.tiles() {
+        //     if tile.visible {
+        //         if tile.blocked {
+        //             map.push(EntityType::Wall);
+        //         } else {
+        //             map.push(EntityType::Floor);
+        //         }
+        //     } else {
+        //         map.push(EntityType::Hidden)
+        //     }
+        // }
 
-        map[self.map.pos_to_index(self.player)] = EntityType::Player;
+        // map[self.map.pos_to_index(self.player)] = EntityType::Player;
 
-        JsValue::from_serde(&map).unwrap()
+        JsValue::from_serde(&self.map).unwrap()
     }
 
     #[wasm_bindgen]

@@ -31,7 +31,7 @@ const createStyle = (style: Partial<StyleOptions>): StyleOptions => ({
 });
 
 export const wallStyle = createStyle({
-  text: "#",
+  text: "",
   textColour: "black",
   bgColour: "#724cf9",
 });
@@ -47,4 +47,8 @@ export const playerStyle = createStyle({
   textColour: "#fcf943",
   bgColour: floorStyle.bgColour,
   fontScale: 0.9,
+});
+
+export const memoryStyle = createStyle({
+  bgColour: "rgba(0, 0, 0, 0.7)",
 });

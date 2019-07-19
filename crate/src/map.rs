@@ -1,5 +1,5 @@
 use serde::*;
-use serde_derive::*;
+use serde_repr::*;
 use std::cmp;
 use std::fmt;
 use wasm_bindgen::prelude::*;
@@ -22,10 +22,21 @@ macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
+#[wasm_bindgen]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize_repr)]
+#[repr(u8)]
+pub enum TileType {
+    Wall = 2,
+    Floor = 3,
+}
+
+#[wasm_bindgen]
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct Tile {
     pub visible: bool,
     pub blocked: bool,
+    pub seen: bool,
+    pub tile_type: TileType,
 }
 
 impl Tile {
@@ -33,6 +44,8 @@ impl Tile {
         Tile {
             visible: false,
             blocked: true,
+            seen: false,
+            tile_type: TileType::Wall,
         }
     }
 
@@ -40,6 +53,8 @@ impl Tile {
         Tile {
             visible: false,
             blocked: false,
+            seen: false,
+            tile_type: TileType::Floor,
         }
     }
 }
@@ -51,6 +66,7 @@ pub struct Map {
     tiles: Vec<Tile>,
 }
 
+#[wasm_bindgen]
 impl Map {
     pub fn new(size: Vector, map_str: &str) -> Map {
         let width = size.x as usize;
@@ -86,40 +102,6 @@ impl Map {
             }
         }
 
-        // let walls: Vec<Vector> = vec![
-        //     Vector::new(4, 2),
-        //     Vector::new(5, 2),
-        //     Vector::new(6, 2),
-        //     Vector::new(7, 2),
-        //     Vector::new(8, 2),
-        //     Vector::new(9, 2),
-        //     Vector::new(10, 2),
-        //     Vector::new(11, 2),
-        //     Vector::new(12, 2),
-        //     Vector::new(13, 2),
-        //     Vector::new(4, 5),
-        //     Vector::new(5, 5),
-        //     Vector::new(6, 5),
-        //     Vector::new(7, 5),
-        //     Vector::new(8, 5),
-        //     Vector::new(9, 5),
-        //     Vector::new(10, 5),
-        //     Vector::new(11, 5),
-        //     Vector::new(12, 5),
-        //     Vector::new(13, 5),
-        //     Vector::new(4, 13),
-        //     Vector::new(4, 14),
-        //     Vector::new(4, 15),
-        //     Vector::new(5, 15),
-        //     Vector::new(5, 14),
-        //     Vector::new(6, 15),
-        // ];
-
-        // for v in walls.iter() {
-        //     let index = map.pos_to_index(*v);
-        //     map.tiles[index] = Tile::wall();
-        // }
-
         map
     }
 
@@ -142,6 +124,24 @@ impl Map {
         }
     }
 
+    fn set_visibility(&mut self, pos: Vector, visibility: bool) {
+        if self.in_bounds(pos) {
+            let index = self.pos_to_index(pos);
+            self.tiles[index].visible = visibility;
+
+            if visibility {
+                self.remember_tile(pos);
+            }
+        }
+    }
+
+    pub fn remember_tile(&mut self, pos: Vector) {
+        if self.in_bounds(pos) {
+            let index = self.pos_to_index(pos);
+            self.tiles[index].seen = true;
+        }
+    }
+
     pub fn pos_to_index(&self, pos: Vector) -> usize {
         (self.size.x * pos.y + pos.x) as usize
     }
@@ -155,8 +155,9 @@ impl Map {
         }
     }
 
-    pub fn tiles(&self) -> &Vec<Tile> {
-        &self.tiles
+    #[wasm_bindgen]
+    pub fn get_tiles(&self) -> JsValue {
+        JsValue::from_serde(&self.tiles).unwrap()
     }
 }
 
@@ -170,10 +171,7 @@ impl Area for Map {
     }
 
     fn set_visibility(&mut self, pos: Vector, visibility: bool) {
-        if self.in_bounds(pos) {
-            let index = self.pos_to_index(pos);
-            self.tiles[index].visible = visibility;
-        }
+        self.set_visibility(pos, visibility)
     }
 }
 

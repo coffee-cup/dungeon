@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 
+mod entity;
 mod fov;
 mod game;
 mod map;

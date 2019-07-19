@@ -1,11 +1,21 @@
 import { Game, Vector } from "../../crate/pkg";
-import { renderMap } from "./draw";
+import { render } from "./draw";
 import { Context } from "./types";
 import { keys } from "./utils";
 import * as WebFont from "webfontloader";
 
 const MAX_MAP_WIDTH = 2000;
 
+// const map = `
+// #######
+// # #   #
+// # # # #
+// # #   #
+// # #   #
+// # #   #
+// #     #
+// #######
+// `.trim();
 const map = `
 ######################################################
 #       ##############################################
@@ -89,8 +99,8 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     mod,
   };
 
-  // renderMap(ctx);
-  loadFont(() => renderMap(ctx));
+  render(ctx);
+  loadFont(() => render(ctx));
 
   document.addEventListener("keydown", e => {
     const keysToDir = {
@@ -111,7 +121,7 @@ export const start = async (mod: typeof import("../../crate/pkg")) => {
     const dir = keysToDir[e.keyCode];
     if (dir != null) {
       game.move_player(dir);
-      renderMap(ctx);
+      render(ctx);
     }
   });
 };
