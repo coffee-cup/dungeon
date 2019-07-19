@@ -1,60 +1,4 @@
-use std::cmp;
-use wasm_bindgen::prelude::*;
-
 use crate::vector::*;
-
-#[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    pub fn log(s: &str);
-}
-
-macro_rules! console_log {
-    // Note that this is using the `log` function imported above during
-    // `bare_bones`
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-struct Slope {
-    x: i32,
-    y: i32,
-    pub num: f32,
-}
-
-impl Slope {
-    pub fn new(y: i32, x: i32) -> Slope {
-        Slope {
-            x: x,
-            y: y,
-            num: (y as f32) / (x as f32),
-        }
-    }
-
-    pub fn to_num(&self) -> i32 {
-        self.y / self.x
-    }
-}
-
-// impl cmp::Ord for Slope {
-//     fn cmp(&self, other: &Self) -> cmp::Ordering {
-//         if self == other {
-//             cmp::Ordering::Equal
-//         } else if self.y * other.x > self.x * other.y {
-//             cmp::Ordering::Greater
-//         } else {
-//             cmp::Ordering::Less
-//         }
-//     }
-// }
-
-// impl PartialOrd for Slope {
-//     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-//         Some(self.cmp(other))
-//     }
-// }
 
 #[derive(Debug, Clone)]
 struct Shadow {
@@ -69,17 +13,8 @@ impl Shadow {
             end: end,
         }
     }
-    // pub fn new(start: Slope, end: Slope) -> Shadow {
-    //     Shadow {
-    //         start: start,
-    //         end: end,
-    //     }
-    // }
 
     pub fn project(row: i32, col: i32) -> Shadow {
-        // y / x ?
-        // let top_left = Slope::new(pos.x, pos.y + 2);
-        // let bottom_right = Slope::new(pos.x + 1, pos.y + 1);
         let row = row as f32;
         let col = col as f32;
 
@@ -90,7 +25,6 @@ impl Shadow {
     }
 
     pub fn contains(&self, other: &Shadow) -> bool {
-        // self.start.num <= other.start.num && self.end.num >= other.end.num
         self.start <= other.start && self.end >= other.end
     }
 }
@@ -199,7 +133,7 @@ fn refresh_octant(area: &mut Area, range_limit: i32, origin: Vector, octant: usi
     let mut full_shadow = false;
 
     let mut row = 1;
-    while range_limit < 0 || row < range_limit {
+    while true {
         if !area.in_bounds(origin + transform_octant(row, 0, octant)) {
             break;
         }
@@ -211,7 +145,9 @@ fn refresh_octant(area: &mut Area, range_limit: i32, origin: Vector, octant: usi
                 break;
             }
 
-            if full_shadow {
+            let out_of_range = range_limit >= 0 && !origin.in_range(&pos, range_limit);
+
+            if full_shadow || out_of_range {
                 area.set_visibility(pos, false);
             } else {
                 let projection = Shadow::project(row, col);
@@ -222,13 +158,9 @@ fn refresh_octant(area: &mut Area, range_limit: i32, origin: Vector, octant: usi
                 // add any opaque itles to the shadow map
                 if visible && !area.transparent(pos) {
                     line.add(projection.clone());
-                    // full_shadow = line.is_full_shadow();
+                    full_shadow = line.is_full_shadow();
                 }
             }
-
-            // console_log!("-------------");
-            // console_log!("looking at {}", pos);
-            // console_log!("{:?}", line);
 
             col += 1;
         }

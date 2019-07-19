@@ -1,26 +1,10 @@
 use serde::*;
 use serde_repr::*;
-use std::cmp;
 use std::fmt;
 use wasm_bindgen::prelude::*;
 
 use crate::fov::*;
-use crate::utils::*;
 use crate::vector::*;
-
-#[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    pub fn log(s: &str);
-}
-
-macro_rules! console_log {
-    // Note that this is using the `log` function imported above during
-    // `bare_bones`
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
 
 #[wasm_bindgen]
 #[derive(Debug, PartialEq, Clone, Copy, Serialize_repr)]
@@ -178,7 +162,6 @@ impl Area for Map {
 impl fmt::Display for Map {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut map_str: String = "".to_owned();
-        console_log!("size {}", self.size);
         for row in 0..self.size.y {
             for col in 0..self.size.x {
                 let index = self.pos_to_index(Vector::new(col, row));

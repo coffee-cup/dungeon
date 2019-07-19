@@ -38,7 +38,7 @@ export const wallStyle = createStyle({
 
 export const floorStyle = createStyle({
   text: ".",
-  textColour: "rgba(255, 255, 255, 0.3)",
+  textColour: "rgba(255, 255, 255, 0.5)",
   bgColour: "black",
 });
 

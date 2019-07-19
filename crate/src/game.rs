@@ -40,6 +40,7 @@ pub enum Direction {
 pub struct Game {
     map: Map,
     pub player: Vector,
+    pub range_limit: i32,
     pub size: Vector,
 }
 
@@ -53,35 +54,21 @@ impl Game {
 
         // let player = Vector::new(4, 4);
         let player = Vector::new(2, 6);
+        let range_limit = 5;
 
         map.set_all_visiblity(true);
-        fov::refresh_visiblity(&mut map, -1, player);
+        fov::refresh_visiblity(&mut map, range_limit, player);
 
         Game {
             map: map,
             player: player,
+            range_limit: range_limit,
             size: Vector::new(width, height),
         }
     }
 
     #[wasm_bindgen]
     pub fn get_map(&self) -> JsValue {
-        // let mut map: Vec<EntityType> = Vec::with_capacity(self.map.tiles().len());
-
-        // for tile in self.map.tiles() {
-        //     if tile.visible {
-        //         if tile.blocked {
-        //             map.push(EntityType::Wall);
-        //         } else {
-        //             map.push(EntityType::Floor);
-        //         }
-        //     } else {
-        //         map.push(EntityType::Hidden)
-        //     }
-        // }
-
-        // map[self.map.pos_to_index(self.player)] = EntityType::Player;
-
         JsValue::from_serde(&self.map).unwrap()
     }
 
@@ -134,6 +121,6 @@ impl Game {
         }
 
         self.map.set_all_visiblity(true);
-        fov::refresh_visiblity(&mut self.map, -1, self.player);
+        fov::refresh_visiblity(&mut self.map, self.range_limit, self.player);
     }
 }
