@@ -4,6 +4,7 @@ mod entity;
 mod fov;
 mod game;
 mod map;
+mod random;
 mod utils;
 mod vector;
 

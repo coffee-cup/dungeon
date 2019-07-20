@@ -3,45 +3,13 @@ use serde_repr::*;
 use std::fmt;
 use wasm_bindgen::prelude::*;
 
+mod automata;
+mod tile;
+
 use crate::fov::*;
+use crate::map::automata::*;
+use crate::map::tile::*;
 use crate::vector::*;
-
-#[wasm_bindgen]
-#[derive(Debug, PartialEq, Clone, Copy, Serialize_repr)]
-#[repr(u8)]
-pub enum TileType {
-    Wall = 2,
-    Floor = 3,
-}
-
-#[wasm_bindgen]
-#[derive(Debug, PartialEq, Clone, Serialize)]
-pub struct Tile {
-    pub visible: bool,
-    pub blocked: bool,
-    pub seen: bool,
-    pub tile_type: TileType,
-}
-
-impl Tile {
-    pub fn wall() -> Tile {
-        Tile {
-            visible: false,
-            blocked: true,
-            seen: false,
-            tile_type: TileType::Wall,
-        }
-    }
-
-    pub fn floor() -> Tile {
-        Tile {
-            visible: false,
-            blocked: false,
-            seen: false,
-            tile_type: TileType::Floor,
-        }
-    }
-}
 
 #[wasm_bindgen]
 #[derive(Debug, PartialEq, Clone, Serialize)]
@@ -56,35 +24,37 @@ impl Map {
         let width = size.x as usize;
         let height = size.y as usize;
 
-        let mut tiles = Vec::with_capacity(width * height);
+        let tiles = generate_automata_map(size);
 
-        for y in 0..height {
-            for x in 0..width {
-                if x == 0 || x == width - 1 || y == 0 || y == height - 1 {
-                    tiles.push(Tile::wall());
-                } else {
-                    tiles.push(Tile::floor());
-                };
-            }
-        }
+        // let mut tiles = Vec::with_capacity(width * height);
+
+        // for y in 0..height {
+        //     for x in 0..width {
+        //         if x == 0 || x == width - 1 || y == 0 || y == height - 1 {
+        //             tiles.push(Tile::wall());
+        //         } else {
+        //             tiles.push(Tile::floor());
+        //         };
+        //     }
+        // }
 
         let mut map = Map {
             tiles: tiles,
             size: size,
         };
 
-        for y in 0..height {
-            for x in 0..width {
-                let index = map.pos_to_index(Vector::new(x as i32, y as i32));
-                let char = map_str.chars().nth(index).unwrap();
+        // for y in 0..height {
+        //     for x in 0..width {
+        //         let index = map.pos_to_index(Vector::new(x as i32, y as i32));
+        //         let char = map_str.chars().nth(index).unwrap();
 
-                if char == '#' {
-                    map.tiles[index] = Tile::wall();
-                } else {
-                    map.tiles[index] = Tile::floor();
-                }
-            }
-        }
+        //         if char == '#' {
+        //             map.tiles[index] = Tile::wall();
+        //         } else {
+        //             map.tiles[index] = Tile::floor();
+        //         }
+        //     }
+        // }
 
         map
     }

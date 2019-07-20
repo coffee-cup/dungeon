@@ -36,7 +36,7 @@ pub enum Direction {
 }
 
 #[wasm_bindgen]
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Game {
     map: Map,
     pub player: Vector,
@@ -54,10 +54,10 @@ impl Game {
 
         // let player = Vector::new(4, 4);
         let player = Vector::new(2, 6);
-        let range_limit = 5;
+        let range_limit = 3;
 
         map.set_all_visiblity(true);
-        fov::refresh_visiblity(&mut map, range_limit, player);
+        // fov::refresh_visiblity(&mut map, range_limit, player);
 
         Game {
             map: map,
@@ -121,6 +121,6 @@ impl Game {
         }
 
         self.map.set_all_visiblity(true);
-        fov::refresh_visiblity(&mut self.map, self.range_limit, self.player);
+        // fov::refresh_visiblity(&mut self.map, self.range_limit, self.player);
     }
 }
