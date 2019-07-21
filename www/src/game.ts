@@ -46,8 +46,8 @@ const map = `
 
 const lines = map.split("\n");
 
-const MAP_WIDTH = 40;
-const MAP_HEIGHT = 30;
+const MAP_WIDTH = 60;
+const MAP_HEIGHT = 40;
 // const MAP_WIDTH = lines[0].length;
 // const MAP_HEIGHT = lines.length;
 

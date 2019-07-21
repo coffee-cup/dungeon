@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::fov;
 use crate::map::*;
+use crate::random;
 use crate::vector::*;
 
 #[wasm_bindgen]
@@ -52,8 +53,7 @@ impl Game {
 
         console_log!("{}", map);
 
-        // let player = Vector::new(4, 4);
-        let player = Vector::new(2, 6);
+        let player = find_player_start(&map);
         let range_limit = 3;
 
         map.set_all_visiblity(true);
@@ -123,4 +123,20 @@ impl Game {
         self.map.set_all_visiblity(true);
         // fov::refresh_visiblity(&mut self.map, self.range_limit, self.player);
     }
+}
+
+fn find_player_start(map: &Map) -> Vector {
+    let mut pos = Vector::new(0, 0);
+    loop {
+        let rand_x = random::range(0, map.width as u32) as i32;
+        let rand_y = random::range(0, map.height as u32) as i32;
+
+        let new_pos = Vector::new(rand_x, rand_y);
+        if !map.is_blocked(new_pos) {
+            pos = new_pos;
+            break;
+        }
+    }
+
+    pos
 }
