@@ -130,8 +130,7 @@ fn generate_str_map(map: &mut Map, map_str: &str) {
 fn generate_automata_map(map: &mut Map) {
     fill_random_tiles(map);
 
-    // let num_iterations = random::range(3, 8);
-    let num_iterations = 1;
+    let num_iterations = random::range(2, 5);
     for _ in 0..num_iterations {
         run_iteration(map);
     }
@@ -183,7 +182,7 @@ fn num_wall_neighbours(pos: Vector, map: &Map) -> u32 {
 }
 
 fn fill_random_tiles(map: &mut Map) {
-    let wall_chance = 40;
+    let wall_chance = 45;
 
     for y in 0..map.height {
         for x in 0..map.width {
