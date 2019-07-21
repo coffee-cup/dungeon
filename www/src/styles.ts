@@ -50,5 +50,5 @@ export const playerStyle = createStyle({
 });
 
 export const memoryStyle = createStyle({
-  bgColour: "rgba(0, 0, 0, 0.7)",
+  bgColour: "rgba(0, 0, 0, 0.84)",
 });

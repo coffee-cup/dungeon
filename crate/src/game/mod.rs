@@ -54,10 +54,10 @@ impl Game {
         console_log!("{}", map);
 
         let player = find_player_start(&map);
-        let range_limit = 3;
+        let range_limit = -1;
 
         map.set_all_visiblity(true);
-        // fov::refresh_visiblity(&mut map, range_limit, player);
+        fov::refresh_visiblity(&mut map, range_limit, player);
 
         Game {
             map: map,
@@ -121,7 +121,7 @@ impl Game {
         }
 
         self.map.set_all_visiblity(true);
-        // fov::refresh_visiblity(&mut self.map, self.range_limit, self.player);
+        fov::refresh_visiblity(&mut self.map, self.range_limit, self.player);
     }
 }
 

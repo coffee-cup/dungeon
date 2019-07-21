@@ -90,9 +90,9 @@ const renderMap = async (ctx: Context) => {
       const index = posToIndex(game, row, col);
       const tile = tiles[index];
 
-      // if (!tile.seen) {
-      //   continue;
-      // }
+      if (!tile.seen) {
+        continue;
+      }
 
       const pos = new ctx.mod.Vector(col, row);
       const style = tileStyles[tile.tile_type];
