@@ -33,7 +33,7 @@ const createStyle = (style: Partial<StyleOptions>): StyleOptions => ({
 export const wallStyle = createStyle({
   text: "",
   textColour: "black",
-  bgColour: "#724cf9",
+  bgColour: "#660152",
 });
 
 export const floorStyle = createStyle({
